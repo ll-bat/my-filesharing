@@ -4,6 +4,7 @@ import socket, cv2, pickle, struct, imutils
 import numpy as np
 from mss import mss
 from PIL import Image
+import json 
 
 # Socket Create
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,33 +21,44 @@ server_socket.bind(socket_address)
 server_socket.listen(1)
 print("LISTENING AT:", socket_address)
 
-mon = {'top': 0, 'left': 0, 'width': 100, 'height': 100}
 sct = mss()
+sct.compression_level = 15
+mon = sct.monitors[0]
 
 def get_image_data():
-    sct.get_pixels(mon)
-    img = Image.frombytes('RGB', (sct.width, sct.height), sct.image)
-    return np.array(img)
+    # Grab the data
+    sct_img = sct.grab(mon)
+    # sct.get_pixels(mon)
+    # img = Image.frombytes('RGB', (sct.width, sct.height), sct.image)
+    return np.array(sct_img)
 
 # Socket Accept
 while True:
     client_socket, addr = server_socket.accept()
-    print('GOT CONNECTION FROM:', addr)
-    if client_socket:
-        while True:
-            image_data = get_image_data()
-            
-            a = pickle.dumps(image_data) #serialize frame to bytes
-            message = struct.pack("Q", len(a)) + a # pack the serialized data
-            # print(message)
-            try:
-                client_socket.sendall(message) #send message or data frames to client
-            except Exception as e:
-                print(e)
-                raise Exception(e)
+    try:
+        print('GOT CONNECTION FROM:', addr)
+        if client_socket:
+            while True:
+                image_data = get_image_data()
 
+                image_bytes = pickle.dumps(image_data) #serialize frame to bytes
+                delimeter = pickle.dumps('@')
+                # print(message)
+                try:
+                    # client_socket.sendall(size_bytes)
+                    # client_socket.sendall(pickle.dumps(":"))
+                    print('sending imagewith size {}'.format(len(image_bytes)))
+                    client_socket.sendall(image_bytes + delimeter) #send message or data frames to client
+                except Exception as e:
+                    print(e)
+                    client_socket.close()
+                    break 
 
-            cv2.imshow('TRANSMITTING VIDEO', image_data) # will show video frame on server side.
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
-                client_socket.close()
+                # cv2.imshow('TRANSMITTING VIDEO', image_data) # will show video frame on server side.
+                # key = cv2.waitKey(1) & 0xFF
+                # if key == ord('q'):
+                #     client_socket.close()
+    except Exception as e:
+        pass 
+
+    client_socket.close()
