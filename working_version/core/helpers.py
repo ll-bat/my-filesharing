@@ -6,10 +6,12 @@ import pickle, zlib, numpy as np
 
 class Helper:
     @staticmethod
-    def get_to_send_bytes(image_bytes):
-        image_bytes = pickle.dumps(image_bytes)
-        delimeter = pickle.dumps(Config.delimeter) 
-        return image_bytes + delimeter
+    def compress(bytes):
+        return zlib.compress(bytes)
+
+    @staticmethod
+    def decompress(bytes):
+        return zlib.decompress(bytes)
 
 
 class ScreenshotHelper:
@@ -23,22 +25,10 @@ class ScreenshotHelper:
     def monitor(cls):
         return cls.mss.monitors[0]
 
-    @staticmethod
-    def compress(np_array):
-        return np_array
-
-    @staticmethod
-    def compress_bytes(bytes):
-        return zlib.compress(bytes)
-
-    @staticmethod
-    def decompress_bytes(bytes):
-        return zlib.decompress(bytes)
-
     def get_screenshot(self):
         screenshot = self.mss.grab(self.monitor)
         np_array = np.array(screenshot)
-        return self.compress(np_array)
+        return np_array
 
 
 class BytesReceiver:
@@ -69,8 +59,8 @@ class BytesReceiver:
 
         full_bytes = b''.join(self.bytes_chunks)
         self.bytes_chunks = [self.delimeter.join(last_bytes_chunk_parts[1:])]
-        return full_bytes        
-    
+        return full_bytes
+
     def __iter__(self):
         return self 
 

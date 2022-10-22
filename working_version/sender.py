@@ -1,6 +1,7 @@
 from core.server import Server
 from core.config import Config
 from core.helpers import ScreenshotHelper, Helper
+import pickle 
 
 server = Server(Config.host_ip, Config.port)
 server.start_server() 
@@ -14,11 +15,15 @@ try:
     print('GOT CONNECTION FROM:', addr)
     if client_socket:
         while True:
-            image_bytes = screenshot_helper.get_screenshot()
-            to_send_bytes = Helper.get_to_send_bytes(image_bytes)
+            image_data = screenshot_helper.get_screenshot()
+
+            image_bytes = pickle.dumps(image_data) 
+            delimeter_bytes = pickle.dumps(Config.delimeter)
+
+            compressed_image_bytes = Helper.compress(image_bytes)
             
-            print('sending image with size {}'.format(len(to_send_bytes)))
-            client_socket.sendall(to_send_bytes)
+            print('sending image with size {}'.format(len(compressed_image_bytes)))
+            client_socket.sendall(compressed_image_bytes + delimeter_bytes)
 except Exception as e:
     print(e)
 
