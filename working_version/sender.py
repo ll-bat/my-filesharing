@@ -1,7 +1,7 @@
+import pickle, traceback
 from core.server import Server
 from core.config import Config
 from core.helpers import ScreenshotHelper, Helper
-import pickle 
 
 server = Server(Config.host_ip, Config.port)
 server.start_server() 
@@ -25,6 +25,6 @@ try:
             print('sending image with size {}'.format(len(compressed_image_bytes)))
             client_socket.sendall(compressed_image_bytes + delimeter_bytes)
 except Exception as e:
-    print(e)
+    print(traceback.format_exception())
 
 server.close_connection()

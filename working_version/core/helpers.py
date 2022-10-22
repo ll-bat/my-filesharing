@@ -1,13 +1,15 @@
 from functools import cached_property
 from .config import Config
-from mss import mss
+import io 
+from mss import mss, tools
+from PIL import Image
 import pickle, zlib, numpy as np
 
 
 class Helper:
     @staticmethod
     def compress(bytes):
-        return zlib.compress(bytes)
+        return zlib.compress(bytes, 1)
 
     @staticmethod
     def decompress(bytes):
