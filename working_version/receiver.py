@@ -16,7 +16,6 @@ while True:
     try:
         image_bytes = next(bytes_receiver_iter) 
         if not image_bytes:
-            print('no image bytes')
             break 
 
         image_data = pickle.loads(image_bytes) 
@@ -24,13 +23,10 @@ while True:
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'): # press q to exit video
-            print('break')
             break
 
     except Exception as e:
-        print(e)
         print(traceback.format_exception()) 
-        print('exception occurred')
         break 
 
 server.close_connection()
